@@ -7,6 +7,11 @@ PLAYER_LABELS = (' ', 'X', 'O')
 
 
 def win_condition(grid):
+    """
+    Calculates the winner (if any) for a given game grid
+    :param grid: the game grid
+    :return: False if no winner, 1 or 2 for X or O, or 3 for draw
+    """
     for player in (1, 2):
         player_positions = (grid == player)
         if player_positions.all(axis=0).any() or player_positions.all(axis=1).any() or np.diag(player_positions).all():
@@ -20,7 +25,6 @@ def print_grid(grid):
     """
     Prints the game grid to screen (or other buffer if output is specified)
     :param grid: the current game grid
-    :param output: output buffer, defaults to stdout
     """
     line = "   --- --- ---"
     print("    1   2   3 ")
@@ -34,6 +38,12 @@ def print_grid(grid):
 
 
 def get_player_input(grid, player):
+    """
+    Gets the row/col input for the given player
+    :param grid: the current game grid
+    :param player: the player, either 1 or 2
+    :return: the new game grid
+    """
     assert 0 <= player < 2, "Player must be 0 or 1"
 
     def ask_value(name):
@@ -62,15 +72,18 @@ def get_player_input(grid, player):
     return next_player, grid
 
 
+# Set up initial game state
 game_grid = np.zeros((3, 3), dtype=np.int8)
 current_player = 0
 winner = False
 
+# Loop until a winner is found
 while not winner:
     current_player, game_grid = get_player_input(game_grid, current_player)
     print_grid(game_grid)
     winner = win_condition(game_grid)
 
+# Print the result
 if winner < 3:
     print("Player %s wins!" % PLAYER_LABELS[winner])
 else:
