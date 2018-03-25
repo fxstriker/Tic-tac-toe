@@ -1,113 +1,77 @@
+import numpy as np
 
 # 0 NO PLAYER
 # 1 X
 # 2 O
-
-game_over = False
-player_x_turn = True
-game = [[0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0]]
+PLAYER_LABELS = (' ', 'X', 'O')
 
 
-# Loops valid win conditions checking if there is a win state
-def win_condition():
-    global game_over
-
-    def check():
-        global game_over
-        if tempint == 3:
-            print("X WINS")
-            game_over = True
-        elif tempint == 6:
-            print("O WINS")
-            game_over = True
-    # TIE check
-    spot_free = False
-    for i in range(0, 3):
-        for x in range(0, 3):
-            if game[i][x] == 0:
-                spot_free = True
-    if spot_free is False:
-        print("TIE")
-        game_over = True
-
-    # ROW check
-    for i in range(0, 3):
-        tempint = 0
-        for x in range(0, 3):
-            if game[i][x] == 0:
-                tempint = 100
-            tempint = tempint + (game[i][x])
-        check()
-
-    # COL check
-    for i in range(0, 3):
-        tempint = 0
-        for x in range(0, 3):
-            if game[x][i] == 0:
-                tempint = 100
-            tempint = tempint + (game[x][i])
-        check()
-
-    # daig checks
-    tempint = 0
-    for i in range(0, 3):
-        if game[i][i] == 0:
-            tempint = 100
-        tempint = tempint + (game[i][i])
-    check()
-
-    tempint = 0
-    for i in range(2, -1, -1):
-        if game[i][i] == 0:
-            tempint = 100
-        tempint = tempint + (game[i][i])
-    check()
+def win_condition(grid):
+    for player in (1, 2):
+        player_positions = (grid == player)
+        if player_positions.all(axis=0).any() or player_positions.all(axis=1).any() or np.diag(player_positions).all():
+            return player
+    if (grid != 0).all():
+        return 3
+    return False
 
 
-def grid():
-    draw = [" ", "X", "O"]
-    line = "  --- --- ---"
-    print("   1   2   3 ")
+def print_grid(grid):
+    """
+    Prints the game grid to screen (or other buffer if output is specified)
+    :param grid: the current game grid
+    :param output: output buffer, defaults to stdout
+    """
+    line = "   --- --- ---"
+    print("    1   2   3 ")
     print(line)
-    write = "| "
-    for colnum in range(0, 3):
-        for i in range(0, 3):
-            temp = game[colnum][i]
-            write = write + (draw[temp] + " | ")
-        print(str(colnum+1) + write + "\n" + line)
-        write = "| "
+    for row_num, row in enumerate(grid):
+        print("%i " % (row_num + 1), end='')
+        for item in row:
+            print("| %s " % PLAYER_LABELS[item], end='')
+        print("|")
+        print(line)
 
 
-def player_turn():
-    global player_x_turn
-    player_x_turn = not player_x_turn
+def get_player_input(grid, player):
+    assert 0 <= player < 2, "Player must be 0 or 1"
 
+    def ask_value(name):
+        value = 0
+        while value == 0:
+            try:
+                value = int(input("Input move as %s: " % name))
+            except ValueError:
+                pass
+            if value < 1 or value > 3:
+                print("You must enter a number between 1 and 3")
+                value = 0
+        return value
 
-def get_player_input():
-    if player_x_turn is True:
-        print("Player X turn")
+    print("Player %s turn" % PLAYER_LABELS[player + 1])
+
+    input_column = ask_value("column") - 1
+    input_row = ask_value("row") - 1
+    if grid[input_row, input_column] == 0:
+        grid[input_row, input_column] = player + 1
     else:
-        print("Player 0 turn")
-    input_column = input("Input move as Column: ")
-    input_row = input("Input move as Row: ")
-    try:
-        if game[int(input_row) - 1][int(input_column) - 1] == 0:
-            if player_x_turn is True:
-                game[int(input_row)-1][int(input_column)-1] = 1
-            else:
-                game[int(input_row)-1][int(input_column)-1] = 2
-            player_turn()
-        else:
-            print("Invalid input re-enter turn")
-            get_player_input()
-    except ValueError:
-        print("Invalid input re-enter turn")
-        get_player_input()
+        print("Position already taken! Try again.")
+        return get_player_input(grid, player)
+
+    next_player = (player + 1) % 2
+    return next_player, grid
 
 
-while game_over is False:
-    grid()
-    win_condition()
-    get_player_input()
+game_grid = np.zeros((3, 3), dtype=np.int8)
+current_player = 0
+winner = False
+
+while not winner:
+    current_player, game_grid = get_player_input(game_grid, current_player)
+    print_grid(game_grid)
+    winner = win_condition(game_grid)
+
+if winner < 3:
+    print("Player %s wins!" % PLAYER_LABELS[winner])
+else:
+    print("Draw!")
