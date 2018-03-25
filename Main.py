@@ -90,8 +90,8 @@ def get_player_input():
         print("Player X turn")
     else:
         print("Player 0 turn")
-    input_row = input("Input move as Column: ")
-    input_column = input("Input move as Row: ")
+    input_column = input("Input move as Column: ")
+    input_row = input("Input move as Row: ")
     try:
         if game[int(input_row) - 1][int(input_column) - 1] == 0:
             if player_x_turn is True:
