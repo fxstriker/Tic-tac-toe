@@ -79,11 +79,12 @@ winner = False
 
 # Loop until a winner is found
 while not winner:
-    current_player, game_grid = get_player_input(game_grid, current_player)
     print_grid(game_grid)
+    current_player, game_grid = get_player_input(game_grid, current_player)
     winner = win_condition(game_grid)
 
 # Print the result
+print_grid(game_grid)
 if winner < 3:
     print("Player %s wins!" % PLAYER_LABELS[winner])
 else:
