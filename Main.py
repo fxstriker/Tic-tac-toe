@@ -15,6 +15,7 @@ def win_condition(grid):
     for player in (1, 2):
         player_positions = (grid == player)
         if player_positions.all(axis=0).any() or player_positions.all(axis=1).any() or np.diag(player_positions).all():
+            # TODO FIX DIAG CHECK FROM LEFT UP TO RIGHT
             return player
     if (grid != 0).all():
         return 3
@@ -27,7 +28,7 @@ def print_grid(grid):
     :param grid: the current game grid
     """
     line = "   --- --- ---"
-    print("    1   2   3 ")
+    print("    A   B   C ")
     print(line)
     for row_num, row in enumerate(grid):
         print("%i " % (row_num + 1), end='')
@@ -44,30 +45,35 @@ def get_player_input(grid, player):
     :param player: the player, either 1 or 2
     :return: the new game grid
     """
+    alpha_to_int = {"a": "1", "b": "2", "c": "3"}
     assert 0 <= player < 2, "Player must be 0 or 1"
-
-    def ask_value(name):
-        value = 0
-        while value == 0:
-            try:
-                value = int(input("Input move as %s: " % name))
-            except ValueError:
-                pass
-            if value < 1 or value > 3:
-                print("You must enter a number between 1 and 3")
-                value = 0
-        return value
-
     print("Player %s turn" % PLAYER_LABELS[player + 1])
-
-    input_column = ask_value("column") - 1
-    input_row = ask_value("row") - 1
+    test = 0
+    while test == 0:
+        try:
+            value = input("Input move as cords example A1 : ")
+            if len(value) == 2 and value[0].isalpha() and value[1].isdigit():
+                test = 1
+                input_row = int(value[1]) - 1
+                if value[0].lower() in alpha_to_int.keys():
+                    input_column = int(alpha_to_int[value[0].lower()]) - 1
+                else:
+                    print("You must enter a valid coordinate with a range of A - C for example A1")
+                    test = 0
+                    input_column = 0
+            else:
+                test = 0
+                print("You must enter a valid coordinate with a range of A - C / 1 - 3  for example A1")
+            if input_row < 0 or input_row > 2 or input_column < 0 or input_column > 2:
+                test = 0
+                print("You must enter a valid coordinate with a range of 1 - 3  for example A1")
+        except ValueError:
+            test = 0
     if grid[input_row, input_column] == 0:
         grid[input_row, input_column] = player + 1
     else:
         print("Position already taken! Try again.")
         return get_player_input(grid, player)
-
     next_player = (player + 1) % 2
     return next_player, grid
 
